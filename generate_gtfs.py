@@ -21,7 +21,7 @@ def write_gtfs_file(filename, headers, rows):
 
 MAIN_LINE = [
     ["ST_PLACE_DES_MARTYRS",     "Place des Martyrs",          "36.7847",  "3.0621",  "0"],
-    ["ST_ALI_BOUMENJEL",         "Ali Boumenjel",              "36.7800",  "3.0610",  "0"],  # ← AJOUT
+    ["ST_ALI_BOUMENJEL",         "Ali Boumenjel",              "36.7800",  "3.0610",  "0"],  
     ["ST_TAFOURAH_GRANDE_POSTE", "Tafourah - Grande Poste",    "36.7725",  "3.0583",  "0"],
     ["ST_KHELIFA_BOUKHALFA",     "Khelifa Boukhalfa",          "36.7651",  "3.0519",  "0"],
     ["ST_1ER_MAI",               "1er Mai",                    "36.7533",  "3.0475",  "0"],
@@ -40,9 +40,9 @@ MAIN_LINE = [
 
 # Stations de la branche Ain Naadja (après bifurcation à Hai El Badr)
 BRANCH_ONLY = [
-    ["ST_HAITE_DES_ATELIERS", "Haïte des Ateliers", "36.7130",  "3.0820",  "0"],  # ← AJOUT
-    ["ST_GUE_DE_CONSTANTINE", "Gué de Constantine", "36.7095",  "3.0750",  "0"],  # ← AJOUT
-    ["ST_AIN_NAADJA",         "Ain Naadja",         "36.7050",  "3.0670",  "0"],  # ← corrigé (était Ruisseau)
+    ["ST_HAITE_DES_ATELIERS", "Haïte des Ateliers", "36.7130",  "3.0820",  "0"],  
+    ["ST_GUE_DE_CONSTANTINE", "Gué de Constantine", "36.7095",  "3.0750",  "0"],  
+    ["ST_AIN_NAADJA",         "Ain Naadja",         "36.7050",  "3.0670",  "0"],  
 ]
 
 # Branche complète : Place des Martyrs → … → Hai El Badr → Ain Naadja
