@@ -3,102 +3,106 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Métro d'Alger — Ligne 1 · GTFS Open Data</title>
+  <title>Réseau TC Alger · Métro & Tramway · GTFS Open Data</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #0f1117; color: #f0f0f0;
-      min-height: 100vh; display: flex; flex-direction: column;
-    }
-    header {
-      padding: 18px 24px; display: flex; align-items: center; gap: 16px;
-      background: #0f1117; border-bottom: 1px solid #1e2130;
-    }
-    .metro-badge {
-      width: 44px; height: 44px; border-radius: 50%; background: #0072BC;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px; font-weight: 700; color: #fff; flex-shrink: 0;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #f0f0f0; min-height: 100vh; display: flex; flex-direction: column; }
+    header { padding: 18px 24px; display: flex; align-items: center; gap: 16px; background: #0f1117; border-bottom: 1px solid #1e2130; }
+    .badges { display: flex; gap: 6px; flex-shrink: 0; }
+    .badge { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; }
+    .badge-m { background: #0072BC; }
+    .badge-t { background: #E85D26; }
     header h1 { font-size: 17px; font-weight: 600; color: #f0f0f0; line-height: 1.2; }
     header p  { font-size: 12px; color: #666; margin-top: 2px; }
-    .github-link {
-      margin-left: auto; font-size: 12px; color: #0072BC; text-decoration: none;
-      border: 1px solid #0072BC; padding: 6px 12px; border-radius: 6px;
-      white-space: nowrap; transition: background 0.15s;
-    }
+    .github-link { margin-left: auto; font-size: 12px; color: #0072BC; text-decoration: none; border: 1px solid #0072BC; padding: 6px 12px; border-radius: 6px; white-space: nowrap; }
     .github-link:hover { background: #0072BC20; }
     #map { flex: 1; min-height: 500px; }
     .stats-bar { display: flex; background: #0f1117; border-top: 1px solid #1e2130; }
     .stat { flex: 1; padding: 12px 16px; border-right: 1px solid #1e2130; text-align: center; }
     .stat:last-child { border-right: none; }
-    .stat-value { font-size: 20px; font-weight: 700; color: #0072BC; }
+    .stat-value { font-size: 18px; font-weight: 700; }
+    .stat-value.blue { color: #0072BC; }
+    .stat-value.orange { color: #E85D26; }
     .stat-label { font-size: 11px; color: #666; margin-top: 2px; }
     .leaflet-popup-content-wrapper { border-radius: 10px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important; }
     .leaflet-popup-content { margin: 12px 16px !important; }
     .popup-name { font-weight: 600; font-size: 14px; color: #111; margin-bottom: 4px; }
     .popup-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-top: 4px; margin-right: 4px; }
-    .tag-main     { background: #E6F0FA; color: #0072BC; }
-    .tag-branch   { background: #E0F4F9; color: #0099CC; }
-    .tag-transfer { background: #FFF0E6; color: #E85D26; }
-    .tag-terminus { background: #EAF5EA; color: #2E7D32; }
-    #osm-status { position: absolute; top: 80px; right: 10px; z-index: 1000; background: rgba(15,17,23,0.85); color: #aaa; font-size: 11px; padding: 5px 10px; border-radius: 6px; border: 1px solid #1e2130; }
+    .tag-metro   { background: #E6F0FA; color: #0072BC; }
+    .tag-tram    { background: #FFF0E6; color: #E85D26; }
+    .tag-branch  { background: #E0F4F9; color: #0099CC; }
+    .tag-transfer{ background: #EAF5EA; color: #2E7D32; }
+    .tag-terminus{ background: #F0EAF5; color: #7B2D8B; }
+    #osm-status { position:absolute; top:10px; right:10px; z-index:1000; background:rgba(15,17,23,0.88); color:#aaa; font-size:11px; padding:6px 12px; border-radius:6px; border:1px solid #1e2130; transition: opacity 1s; }
+    .layer-toggle { position:absolute; top:10px; left:50px; z-index:1000; display:flex; gap:6px; }
+    .layer-btn { background:rgba(15,17,23,0.9); border:1px solid #1e2130; color:#ccc; font-size:12px; padding:6px 12px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:6px; }
+    .layer-btn.active-m { border-color:#0072BC; color:#0072BC; }
+    .layer-btn.active-t { border-color:#E85D26; color:#E85D26; }
+    .dot { width:10px; height:10px; border-radius:50%; }
   </style>
 </head>
 <body>
-
 <header>
-  <div class="metro-badge">M</div>
+  <div class="badges">
+    <div class="badge badge-m">M</div>
+    <div class="badge badge-t">T</div>
+  </div>
   <div>
-    <h1>Métro d'Alger — Ligne 1</h1>
-    <p>Open GTFS feed · 19 stations · Place des Martyrs ↔ El Harrach Centre / Ain Naadja</p>
+    <h1>Réseau TC d'Alger — Métro & Tramway</h1>
+    <p>Open GTFS feed · Métro Ligne 1 · Tramway · données © OpenStreetMap</p>
   </div>
   <a class="github-link" href="https://github.com/rysselharr/gtfs-metro-alger" target="_blank">⭐ GitHub</a>
 </header>
 
 <div style="position:relative; flex:1; display:flex; flex-direction:column;">
   <div id="map" style="flex:1; min-height:500px;"></div>
-  <div id="osm-status">⏳ Chargement tracé OSM...</div>
+  <div id="osm-status">⏳ Chargement OSM...</div>
+  <div class="layer-toggle">
+    <button class="layer-btn active-m" id="btn-metro" onclick="toggleLayer('metro')">
+      <span class="dot" style="background:#0072BC"></span> Métro M1
+    </button>
+    <button class="layer-btn active-t" id="btn-tram" onclick="toggleLayer('tram')">
+      <span class="dot" style="background:#E85D26"></span> Tramway
+    </button>
+  </div>
 </div>
 
 <div class="stats-bar">
-  <div class="stat"><div class="stat-value">19</div><div class="stat-label">Stations</div></div>
-  <div class="stat"><div class="stat-value">4</div><div class="stat-label">Trips GTFS</div></div>
-  <div class="stat"><div class="stat-value">4 min</div><div class="stat-label">Fréquence</div></div>
-  <div class="stat"><div class="stat-value">5h–23h</div><div class="stat-label">Amplitude</div></div>
-  <div class="stat"><div class="stat-value">GTFS</div><div class="stat-label">Format standard</div></div>
+  <div class="stat"><div class="stat-value blue">19</div><div class="stat-label">Stations métro</div></div>
+  <div class="stat"><div class="stat-value orange">38</div><div class="stat-label">Arrêts tram</div></div>
+  <div class="stat"><div class="stat-value blue">~14 km</div><div class="stat-label">Métro</div></div>
+  <div class="stat"><div class="stat-value orange">23 km</div><div class="stat-label">Tramway</div></div>
+  <div class="stat"><div class="stat-value" style="color:#aaa">GTFS</div><div class="stat-label">Format standard</div></div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const BLUE   = '#0072BC';
-const BRANCH = '#0099CC';
-const OSM_RELATION_ID = 7627370;
+const BLUE = '#0072BC', BRANCH = '#0099CC', ORANGE = '#E85D26';
 
-const stations = {
+const metroStations = {
   main: [
-    { id:"ST_PLACE_DES_MARTYRS",     name:"Place des Martyrs",          lat:36.7847, lng:3.0621,  terminus:true,  transfer:null },
-    { id:"ST_ALI_BOUMENJEL",         name:"Ali Boumenjel",              lat:36.7800, lng:3.0610,  terminus:false, transfer:null },
-    { id:"ST_TAFOURAH_GRANDE_POSTE", name:"Tafourah - Grande Poste",    lat:36.7725, lng:3.0583,  terminus:false, transfer:null },
-    { id:"ST_KHELIFA_BOUKHALFA",     name:"Khelifa Boukhalfa",          lat:36.7651, lng:3.0519,  terminus:false, transfer:null },
-    { id:"ST_1ER_MAI",               name:"1er Mai",                    lat:36.7533, lng:3.0475,  terminus:false, transfer:"Tramway" },
-    { id:"ST_AISSAT_IDIR",           name:"Aissat Idir",                lat:36.7505, lng:3.0522,  terminus:false, transfer:"Tramway" },
-    { id:"ST_HAMMA",                 name:"Hamma",                      lat:36.7468, lng:3.0611,  terminus:false, transfer:"Tramway" },
-    { id:"ST_JARDIN_ESSAI",          name:"Jardin d'Essai du Hamma",    lat:36.7432, lng:3.0678,  terminus:false, transfer:null },
-    { id:"ST_LES_FUSILLES",          name:"Les Fusillés",               lat:36.7388, lng:3.0651,  terminus:false, transfer:"Télécabine" },
-    { id:"ST_CITE_AMIROUCHE",        name:"Cité Amirouche",             lat:36.7341, lng:3.0712,  terminus:false, transfer:null },
-    { id:"ST_CITE_MER_SOLEIL",       name:"Cité Mer et Soleil",         lat:36.7298, lng:3.0789,  terminus:false, transfer:null },
-    { id:"ST_HAI_EL_BADR",           name:"Haï El Badr",                lat:36.7195, lng:3.0906,  terminus:false, transfer:"bifurcation", bifurcation:true },
-    { id:"ST_BACHDJARAH_TENNIS",     name:"Bachdjarah - Tennis",        lat:36.7201, lng:3.1051,  terminus:false, transfer:null },
-    { id:"ST_BACHDJARAH",            name:"Bachdjarah",                 lat:36.7208, lng:3.1178,  terminus:false, transfer:"Train SNTF" },
-    { id:"ST_EL_HARRACH_GARE",       name:"El Harrach Gare",            lat:36.7211, lng:3.1289,  terminus:false, transfer:null },
-    { id:"ST_EL_HARRACH_CENTRE",     name:"El Harrach Centre",          lat:36.7212, lng:3.1322,  terminus:true,  transfer:null },
+    { name:"Place des Martyrs",       lat:36.7847, lng:3.0621, terminus:true,  transfer:null },
+    { name:"Ali Boumenjel",           lat:36.7800, lng:3.0610, terminus:false, transfer:null },
+    { name:"Tafourah - Grande Poste", lat:36.7725, lng:3.0583, terminus:false, transfer:null },
+    { name:"Khelifa Boukhalfa",       lat:36.7651, lng:3.0519, terminus:false, transfer:null },
+    { name:"1er Mai",                 lat:36.7533, lng:3.0475, terminus:false, transfer:"Tramway" },
+    { name:"Aissat Idir",             lat:36.7505, lng:3.0522, terminus:false, transfer:"Tramway" },
+    { name:"Hamma",                   lat:36.7468, lng:3.0611, terminus:false, transfer:"Tramway" },
+    { name:"Jardin d'Essai du Hamma", lat:36.7432, lng:3.0678, terminus:false, transfer:null },
+    { name:"Les Fusillés",            lat:36.7388, lng:3.0651, terminus:false, transfer:"Tramway + Télécabine", bifurcation:false },
+    { name:"Cité Amirouche",          lat:36.7341, lng:3.0712, terminus:false, transfer:null },
+    { name:"Cité Mer et Soleil",      lat:36.7298, lng:3.0789, terminus:false, transfer:null },
+    { name:"Haï El Badr",             lat:36.7195, lng:3.0906, terminus:false, transfer:null, bifurcation:true },
+    { name:"Bachdjarah - Tennis",     lat:36.7201, lng:3.1051, terminus:false, transfer:null },
+    { name:"Bachdjarah",              lat:36.7208, lng:3.1178, terminus:false, transfer:"Train SNTF" },
+    { name:"El Harrach Gare",         lat:36.7211, lng:3.1289, terminus:false, transfer:null },
+    { name:"El Harrach Centre",       lat:36.7212, lng:3.1322, terminus:true,  transfer:null },
   ],
   branch: [
-    { id:"ST_HAITE_DES_ATELIERS", name:"Haïte des Ateliers", lat:36.7130, lng:3.0820, terminus:false, transfer:null },
-    { id:"ST_GUE_DE_CONSTANTINE", name:"Gué de Constantine", lat:36.7095, lng:3.0750, terminus:false, transfer:null },
-    { id:"ST_AIN_NAADJA",         name:"Ain Naadja",         lat:36.7050, lng:3.0670, terminus:true,  transfer:null },
+    { name:"Haïte des Ateliers", lat:36.7130, lng:3.0820, terminus:false },
+    { name:"Gué de Constantine", lat:36.7095, lng:3.0750, terminus:false },
+    { name:"Ain Naadja",         lat:36.7050, lng:3.0670, terminus:true  },
   ]
 };
 
@@ -110,114 +114,126 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   subdomains: 'abcd', maxZoom: 19
 }).addTo(map);
 
-// ── FALLBACK : tracé simplifié station-à-station ──────────────────────────
-function drawFallbackLines() {
-  L.polyline(stations.main.map(s => [s.lat, s.lng]), {
-    color: BLUE, weight: 5, opacity: 0.95
-  }).addTo(map);
-  const bifurcation = stations.main[11];
-  L.polyline([bifurcation, ...stations.branch].map(s => [s.lat, s.lng]), {
-    color: BRANCH, weight: 5, opacity: 0.9, dashArray: '10,5'
-  }).addTo(map);
-  statusEl.textContent = '📍 Tracé simplifié (OSM indisponible)';
+// ── LAYER GROUPS ──────────────────────────────────────────────────────────
+const metroGroup = L.layerGroup().addTo(map);
+const tramGroup  = L.layerGroup().addTo(map);
+const layers = { metro: { group: metroGroup, active: true }, tram: { group: tramGroup, active: true } };
+
+function toggleLayer(name) {
+  const l = layers[name];
+  l.active = !l.active;
+  l.active ? map.addLayer(l.group) : map.removeLayer(l.group);
+  const btn = document.getElementById('btn-' + name);
+  btn.className = 'layer-btn' + (l.active ? ` active-${name[0]}` : '');
 }
 
-// ── TRACÉ RÉEL via Overpass (proxy CORS public) ────────────────────────────
-async function loadOSMTrace() {
-  // Requête : récupère tous les ways membres de la relation 7627370
-  const query = `[out:json][timeout:25];
-relation(${OSM_RELATION_ID});
-way(r);
-(._;>;);
-out body;`;
-
-  const proxies = [
-    `https://overpass-api.de/api/interpreter`,
-    `https://lz4.overpass-api.de/api/interpreter`,
-    `https://z.overpass-api.de/api/interpreter`
-  ];
-
-  for (const url of proxies) {
-    try {
-      statusEl.textContent = '⏳ Chargement tracé OSM...';
-      const res = await fetch(url, {
-        method: 'POST',
-        body: 'data=' + encodeURIComponent(query),
-        signal: AbortSignal.timeout(10000)
-      });
-      if (!res.ok) continue;
-      const data = await res.json();
-
-      // Reconstruit un index nodes
-      const nodes = {};
-      data.elements.filter(e => e.type === 'node').forEach(n => {
-        nodes[n.id] = [n.lat, n.lon];
-      });
-
-      // Dessine chaque way comme polyline
-      let wayCount = 0;
-      data.elements.filter(e => e.type === 'way').forEach(w => {
-        const coords = w.nodes.map(id => nodes[id]).filter(Boolean);
-        if (coords.length < 2) return;
-        L.polyline(coords, { color: BLUE, weight: 5, opacity: 0.95 }).addTo(map);
-        wayCount++;
-      });
-
-      if (wayCount > 0) {
-        statusEl.textContent = `✅ Tracé OSM réel · ${wayCount} segments`;
-        setTimeout(() => statusEl.style.opacity = '0', 3000);
-        return;
-      }
-    } catch (e) {
-      // essaie le proxy suivant
-    }
-  }
-  // Tous les proxies ont échoué → fallback
-  drawFallbackLines();
-}
-
-loadOSMTrace().catch(() => drawFallbackLines());
-
-// ── MARQUEURS STATIONS ──────────────────────────────────────────────────────
-function makeIcon(s, isBranch) {
-  const size   = s.terminus ? 16 : s.bifurcation ? 13 : s.transfer ? 11 : 9;
-  const border = s.terminus ? 3 : 2;
-  const color  = s.bifurcation ? '#E85D26' : s.transfer && s.transfer !== 'bifurcation' ? '#E85D26' : isBranch ? BRANCH : BLUE;
+// ── ICÔNES ────────────────────────────────────────────────────────────────
+function makeIcon(color, size, border) {
   return L.divIcon({
     className: '',
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#fff;border:${border}px solid ${color};box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>`,
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#fff;border:${border}px solid ${color};box-shadow:0 2px 6px rgba(0,0,0,0.5);"></div>`,
     iconSize: [size, size], iconAnchor: [size/2, size/2]
   });
 }
 
-function buildPopup(s, isBranch) {
-  let html = `<div class="popup-name">${s.name}</div>`;
-  if (s.terminus)     html += `<span class="popup-tag tag-terminus">Terminus</span>`;
-  if (isBranch && !s.terminus) html += `<span class="popup-tag tag-branch">Branche Ain Naadja</span>`;
-  else if (!isBranch) html += `<span class="popup-tag tag-main">Ligne principale</span>`;
-  if (s.bifurcation)  html += `<span class="popup-tag tag-transfer">Bifurcation</span>`;
-  if (s.transfer && s.transfer !== 'bifurcation')
-    html += `<span class="popup-tag tag-transfer">⇄ ${s.transfer}</span>`;
-  return html;
+// ── MÉTRO : tracé OSM réel ────────────────────────────────────────────────
+async function loadMetroTrace() {
+  const query = `[out:json][timeout:25];relation(7627370);way(r);(._;>;);out body;`;
+  for (const url of ['https://overpass-api.de/api/interpreter','https://lz4.overpass-api.de/api/interpreter']) {
+    try {
+      const res = await fetch(url, { method:'POST', body:'data='+encodeURIComponent(query), signal:AbortSignal.timeout(10000) });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const nodes = {};
+      data.elements.filter(e=>e.type==='node').forEach(n => nodes[n.id]=[n.lat,n.lon]);
+      let count = 0;
+      data.elements.filter(e=>e.type==='way').forEach(w => {
+        const coords = w.nodes.map(id=>nodes[id]).filter(Boolean);
+        if (coords.length < 2) return;
+        L.polyline(coords, { color:BLUE, weight:5, opacity:0.95 }).addTo(metroGroup);
+        count++;
+      });
+      if (count > 0) return true;
+    } catch(e) {}
+  }
+  return false;
 }
 
-stations.main.forEach(s =>
-  L.marker([s.lat, s.lng], { icon: makeIcon(s, false) }).bindPopup(buildPopup(s, false)).addTo(map)
-);
-stations.branch.forEach(s =>
-  L.marker([s.lat, s.lng], { icon: makeIcon(s, true) }).bindPopup(buildPopup(s, true)).addTo(map)
-);
+// ── TRAMWAY : tracé OSM par tag railway=tram dans la bbox d'Alger ─────────
+async function loadTramTrace() {
+  const query = `[out:json][timeout:30];
+way["railway"="tram"](36.68,2.95,36.82,3.25);
+(._;>;);out body;`;
+  for (const url of ['https://overpass-api.de/api/interpreter','https://lz4.overpass-api.de/api/interpreter']) {
+    try {
+      const res = await fetch(url, { method:'POST', body:'data='+encodeURIComponent(query), signal:AbortSignal.timeout(15000) });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const nodes = {};
+      data.elements.filter(e=>e.type==='node').forEach(n => nodes[n.id]=[n.lat,n.lon]);
+      let count = 0;
+      data.elements.filter(e=>e.type==='way').forEach(w => {
+        const coords = w.nodes.map(id=>nodes[id]).filter(Boolean);
+        if (coords.length < 2) return;
+        L.polyline(coords, { color:ORANGE, weight:4, opacity:0.85 }).addTo(tramGroup);
+        count++;
+      });
+      if (count > 0) return count;
+    } catch(e) {}
+  }
+  return 0;
+}
 
-// ── LÉGENDE ──────────────────────────────────────────────────────────────────
-const legend = L.control({ position: 'bottomleft' });
+// ── MARQUEURS MÉTRO ───────────────────────────────────────────────────────
+metroStations.main.forEach((s, i) => {
+  const size  = s.terminus ? 16 : s.bifurcation ? 13 : s.transfer ? 11 : 9;
+  const color = s.bifurcation ? ORANGE : s.transfer ? ORANGE : BLUE;
+  let html = `<div class="popup-name">${s.name}</div>`;
+  if (s.terminus)    html += `<span class="popup-tag tag-terminus">Terminus</span>`;
+  html += `<span class="popup-tag tag-metro">Métro M1</span>`;
+  if (s.bifurcation) html += `<span class="popup-tag tag-branch">Bifurcation</span>`;
+  if (s.transfer)    html += `<span class="popup-tag tag-transfer">⇄ ${s.transfer}</span>`;
+  L.marker([s.lat,s.lng], { icon:makeIcon(color, size, s.terminus?3:2) }).bindPopup(html).addTo(metroGroup);
+});
+metroStations.branch.forEach(s => {
+  let html = `<div class="popup-name">${s.name}</div>`;
+  if (s.terminus) html += `<span class="popup-tag tag-terminus">Terminus</span>`;
+  html += `<span class="popup-tag tag-branch">Branche Ain Naadja</span>`;
+  L.marker([s.lat,s.lng], { icon:makeIcon(BRANCH, s.terminus?16:9, s.terminus?3:2) }).bindPopup(html).addTo(metroGroup);
+});
+
+// ── LANCEMENT ─────────────────────────────────────────────────────────────
+async function init() {
+  statusEl.textContent = '⏳ Chargement métro + tramway...';
+  const [metroOk, tramCount] = await Promise.all([loadMetroTrace(), loadTramTrace()]);
+
+  if (!metroOk) {
+    // fallback métro
+    L.polyline(metroStations.main.map(s=>[s.lat,s.lng]), { color:BLUE, weight:5 }).addTo(metroGroup);
+    L.polyline([metroStations.main[11], ...metroStations.branch].map(s=>[s.lat,s.lng]), { color:BRANCH, weight:5, dashArray:'10,5' }).addTo(metroGroup);
+  }
+
+  if (tramCount > 0) {
+    statusEl.textContent = `✅ Métro + Tramway (${tramCount} segments OSM)`;
+  } else {
+    statusEl.textContent = metroOk ? '✅ Métro OSM · Tramway indisponible' : '📍 Tracé simplifié · OSM indisponible';
+  }
+  setTimeout(() => statusEl.style.opacity = '0', 3000);
+}
+
+init();
+
+// ── LÉGENDE ───────────────────────────────────────────────────────────────
+const legend = L.control({ position:'bottomleft' });
 legend.onAdd = () => {
   const d = L.DomUtil.create('div');
   d.style.cssText = 'background:rgba(15,17,23,0.92);padding:10px 14px;border-radius:8px;font-size:12px;color:#ccc;line-height:2;border:1px solid #1e2130;';
   d.innerHTML = `
     <div style="font-weight:600;color:#fff;margin-bottom:4px;">Légende</div>
-    <div><span style="display:inline-block;width:22px;height:4px;background:${BLUE};vertical-align:middle;margin-right:8px;border-radius:2px"></span>Ligne principale</div>
+    <div><span style="display:inline-block;width:22px;height:4px;background:${BLUE};vertical-align:middle;margin-right:8px;border-radius:2px"></span>Métro Ligne 1</div>
     <div><span style="display:inline-block;width:22px;height:0;border-top:4px dashed ${BRANCH};vertical-align:middle;margin-right:8px;"></span>Branche Ain Naadja</div>
-    <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #E85D26;background:transparent;vertical-align:middle;margin-right:8px;"></span>Correspondance</div>
+    <div><span style="display:inline-block;width:22px;height:4px;background:${ORANGE};vertical-align:middle;margin-right:8px;border-radius:2px"></span>Tramway</div>
+    <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid ${ORANGE};background:transparent;vertical-align:middle;margin-right:8px;"></span>Correspondance</div>
     <div style="margin-top:6px;font-size:11px;color:#555;">Tracé réel · données © OSM</div>
   `;
   return d;
