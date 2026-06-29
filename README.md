@@ -2,7 +2,7 @@
 
 > Open GTFS feed for Algiers Metro Line 1, with an interactive web map.
 
-**[🗺️ Voir la carte interactive →](https://YOUR_USERNAME.github.io/gtfs-metro-alger/web/)**
+**[🗺️ Voir la carte interactive →](https://rysselharr.github.io/gtfs-metro-alger/)**
 
 ---
 
